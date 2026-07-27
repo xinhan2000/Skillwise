@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Skillwise — Catalog{% endblock %}
+{% block content %}
+<h1>Skill catalog <span class="muted">({{ count }} published)</span></h1>
+<form method="get" action="/">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search skills…">
+</form>
+<br>
+{% for e in entries %}
+  <div class="card">
+    <h2><a href="/skill/{{ e.id }}">{{ e.name }}</a>
+      <span class="badge {{ e.scan.status }}">scan: {{ e.scan.status }}</span>
+      {% if e.price_usd == 0 %}<span class="badge pass">free</span>{% else %}<span class="badge warn">${{ e.price_usd }}</span>{% endif %}
+    </h2>
+    <div>{{ e.one_liner }}</div>
+    <div class="muted">v{{ e.version }} · by {{ e.author.name }} · {{ e.tags | join(', ') }}
+      · {{ e.stats.installs }} installs</div>
+  </div>
+{% else %}
+  <p class="muted">No skills{% if q %} matching “{{ q }}”{% endif %}.
+     {% if not q %}Run <code>skillwise seed</code> to publish the samples.{% endif %}</p>
+{% endfor %}
+{% endblock %}

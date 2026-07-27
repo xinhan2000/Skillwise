@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Skillwise runtime data (never commit user tokens or telemetry)
+data/tokens.json
+data/events.jsonl
+data/entitlements.json
+
+# Generated catalog (rebuild with `skillwise seed`; commit only if you want a shared catalog)
+catalog/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

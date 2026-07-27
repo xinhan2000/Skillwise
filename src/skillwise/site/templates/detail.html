@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ e.name }} — Skillwise{% endblock %}
+{% block content %}
+<h1>{{ e.name }} <span class="badge {{ e.scan.status }}">scan: {{ e.scan.status }}</span></h1>
+<div class="muted">v{{ e.version }} · by {{ e.author.name }} · license: {{ e.license }} ·
+  {{ e.stats.installs }} installs / {{ e.stats.loads }} loads</div>
+
+<div class="card">
+  <h2>Declared capabilities</h2>
+  <div class="caps">
+    <span>{{ '🌐 network' if e.capabilities.network else '✓ no network access' }}</span>
+    <span>{{ '⚡ shell' if e.capabilities.shell else '✓ no shell commands' }}</span>
+    <span>{{ '📝 writes files' if e.capabilities.file_write else '✓ no file writes' }}</span>
+  </div>
+  <p class="muted">Derived automatically by the security scan. Package sha256:
+  <code>{{ e.sha256[:16] }}…</code></p>
+</div>
+
+{% if e.scan.findings %}
+<div class="card">
+  <h2>Scan findings ({{ e.scan.findings | length }})</h2>
+  {% for f in e.scan.findings %}
+    <div><span class="badge {{ 'fail' if f.level == 'fail' else 'warn' }}">{{ f.level }}</span>
+      <b>{{ f.check }}</b> — {{ f.file }}:{{ f.line }} · {{ f.reason }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Package files</h2>
+  <ul>{% for f in files %}<li><code>{{ f }}</code></li>{% endfor %}</ul>
+</div>
+
+<div class="card">
+  <h2>SKILL.md</h2>
+  <pre>{{ skill_md }}</pre>
+</div>
+{% endblock %}

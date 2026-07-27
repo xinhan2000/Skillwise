@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "skillwise"
+version = "0.1.0"
+description = "Skillwise — an agent-native marketplace for AI skills, delivered over MCP"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Xin Han" }]
+keywords = ["mcp", "claude", "skills", "marketplace", "agents"]
+dependencies = [
+    "mcp>=1.2.0",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "jinja2>=3.1",
+    "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "httpx>=0.27"]
+
+[project.scripts]
+skillwise = "skillwise.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/skillwise"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

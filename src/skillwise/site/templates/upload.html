@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Upload — Skillwise{% endblock %}
+{% block content %}
+<h1>Upload a skill</h1>
+<p class="muted">Zip a folder containing a <code>SKILL.md</code> (with <code>name</code> and
+<code>description</code> frontmatter) plus any supporting files. Every upload passes the
+8-point security scan before it is published.</p>
+
+<div class="card">
+  <form method="post" enctype="multipart/form-data">
+    <p><input type="file" name="package" accept=".zip" required></p>
+    <p><input type="text" name="author" placeholder="Author name" value="local"></p>
+    <button type="submit">Scan &amp; publish</button>
+  </form>
+</div>
+
+{% if error %}
+<div class="card"><h2 style="color:var(--bad)">Rejected</h2><pre>{{ error }}</pre></div>
+{% endif %}
+
+{% if result %}
+<div class="card">
+  <h2 style="color:var(--ok)">{{ result.message }}</h2>
+  <p>sha256: <code>{{ result.sha256[:32] }}…</code></p>
+  {% if result.scan.findings %}
+    <h2>Findings</h2>
+    {% for f in result.scan.findings %}
+      <div><span class="badge warn">{{ f.level }}</span> <b>{{ f.check }}</b> —
+        {{ f.file }}:{{ f.line }} · {{ f.reason }}</div>
+    {% endfor %}
+  {% else %}
+    <p class="muted">No findings — clean scan.</p>
+  {% endif %}
+  <p><a href="/skill/{{ result.skill_id }}">View listing →</a></p>
+</div>
+{% endif %}
+{% endblock %}
