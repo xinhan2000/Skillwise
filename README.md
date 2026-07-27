@@ -1,5 +1,9 @@
 # Skillwise
 
+[![CI](https://github.com/xinhan2000/Skillwise/actions/workflows/ci.yml/badge.svg)](https://github.com/xinhan2000/Skillwise/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 **An agent-native marketplace for AI skills, delivered over MCP.**
 
 Skillwise lets any MCP-capable agent (Claude Code, Claude Desktop, Cursor, …) discover,
