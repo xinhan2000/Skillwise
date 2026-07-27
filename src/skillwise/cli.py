@@ -99,6 +99,37 @@ def main(argv: list[str] | None = None) -> None:
     p = sub.add_parser("seed", help="Publish bundled sample skills")
     p.set_defaults(func=_cmd_seed)
 
+    # ---- end-user commands (see user_cli.py) ----
+    from . import user_cli
+
+    p = sub.add_parser("search", help="Search the marketplace (no query = browse all)")
+    p.add_argument("query", nargs="?", default="")
+    p.add_argument("--limit", type=int, default=20)
+    p.set_defaults(func=user_cli.cmd_search)
+
+    p = sub.add_parser("list", help="List skills installed via Skillwise")
+    p.set_defaults(func=user_cli.cmd_list)
+
+    p = sub.add_parser("add", help="Install a skill (prompts to register on first use)")
+    p.add_argument("skill_id")
+    p.add_argument("-y", "--yes", action="store_true", help="Skip the confirmation prompt")
+    p.set_defaults(func=user_cli.cmd_add)
+
+    p = sub.add_parser("pause", help="Disable an installed skill without removing it")
+    p.add_argument("skill_id")
+    p.set_defaults(func=user_cli.cmd_pause)
+
+    p = sub.add_parser("resume", help="Re-enable a paused skill")
+    p.add_argument("skill_id")
+    p.set_defaults(func=user_cli.cmd_resume)
+
+    p = sub.add_parser("remove", help="Uninstall a skill")
+    p.add_argument("skill_id")
+    p.set_defaults(func=user_cli.cmd_remove)
+
+    p = sub.add_parser("login", help="Register or re-register this machine")
+    p.set_defaults(func=user_cli.cmd_login)
+
     args = parser.parse_args(argv)
     config.ensure_dirs()
     args.func(args)

@@ -7,15 +7,52 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, Request, UploadFile
+from fastapi import Body, FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from .. import catalog, config
+from ..client import ClientError, LocalBackend, RegistrationRequired
 from ..ingest import IngestError, publish
 
 app = FastAPI(title="Skillwise")
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+
+
+# ---------- REST API (used by HttpBackend / future hosted clients) ----------
+
+@app.get("/api/skills")
+def api_search(q: str = "", limit: int = 20):
+    return {"results": LocalBackend().search(q, limit=limit)}
+
+
+@app.get("/api/skills/{skill_id}")
+def api_get(skill_id: str):
+    entry = catalog.get_entry(skill_id)
+    if entry is None:
+        raise HTTPException(status_code=404, detail=f"No skill {skill_id!r}")
+    return entry
+
+
+@app.post("/api/register")
+def api_register(body: dict = Body(...)):
+    name = (body.get("name") or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="name is required")
+    return {"token": LocalBackend().register(name)}
+
+
+@app.post("/api/skills/{skill_id}/install")
+def api_install(skill_id: str, authorization: str | None = Header(default=None)):
+    token = None
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization[7:]
+    try:
+        return LocalBackend().install(skill_id, token)
+    except RegistrationRequired as exc:
+        raise HTTPException(status_code=401, detail=str(exc))
+    except ClientError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
 
 
 @app.get("/", response_class=HTMLResponse)
