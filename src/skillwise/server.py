@@ -52,6 +52,19 @@ def search_skills(query: str, tags: list[str] | None = None, limit: int = 5) -> 
 
 
 @mcp.tool()
+def browse_skills(tags: list[str] | None = None, limit: int = 20) -> dict:
+    """List the Skillwise marketplace catalog without needing keywords. Use when
+    the user asks what skills are available or wants an overview of the
+    marketplace, or to browse a category by passing tags. Returns up to `limit`
+    skills, most-installed first."""
+    results = [catalog.summary(e) for e in catalog.search("", tags=tags, limit=limit)]
+    events.log("browse", tags=tags or [], result_count=len(results))
+    return {"results": results,
+            "note": "Before installing, show the user the skill name, scan_status and "
+                    "capabilities, and ask for their approval."}
+
+
+@mcp.tool()
 def get_skill_details(skill_id: str) -> dict:
     """Get the full listing for one skill: long description, version, author,
     license, security scan report, declared capabilities, and package hash.

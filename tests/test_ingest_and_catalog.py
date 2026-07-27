@@ -50,3 +50,24 @@ def test_publish_log_append_only(sw_home, make_skill):
     publish(make_skill(name="Log Two"))
     lines = config.publish_log().read_text().strip().splitlines()
     assert len(lines) == 2
+
+
+def test_empty_query_browses_full_catalog(sw_home, make_skill):
+    publish(make_skill(name="Alpha One"))
+    publish(make_skill(name="Beta Two"))
+    hits = catalog.search("", limit=20)
+    assert {e["id"] for e in hits} == {"alpha-one", "beta-two"}
+
+
+def test_browse_sorts_by_installs(sw_home, make_skill):
+    publish(make_skill(name="Quiet Skill"))
+    publish(make_skill(name="Popular Skill"))
+    catalog.bump_stat("popular-skill", "installs")
+    hits = catalog.search("", limit=20)
+    assert hits[0]["id"] == "popular-skill"
+
+
+def test_browse_tag_filter(sw_home, make_skill):
+    publish(make_skill(name="Tagged Skill"))  # tags: test, sample
+    assert catalog.search("", tags=["test"], limit=20)
+    assert catalog.search("", tags=["nonexistent-tag"], limit=20) == []

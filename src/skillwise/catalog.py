@@ -104,12 +104,24 @@ def _tokens(text: str) -> list[str]:
 
 
 def search(query: str, tags: list[str] | None = None, limit: int = 5) -> list[dict]:
-    """Weighted keyword search: name×3, tags×2, one-liner/description×1."""
-    q_tokens = set(_tokens(query))
-    if not q_tokens:
-        return []
+    """Weighted keyword search: name×3, tags×2, one-liner/description×1.
+
+    An empty query means browse mode: the whole catalog (optionally filtered
+    by tags), most-installed first.
+    """
+    entries = load_index()
+    if tags:
+        wanted = {t.lower() for t in tags}
+        entries = [e for e in entries
+                   if wanted & {t.lower() for t in e.get("tags", [])}]
+
+    q_tokens = set(_tokens(query or ""))
+    if not q_tokens:  # browse mode
+        entries.sort(key=lambda e: (-e.get("stats", {}).get("installs", 0), e["id"]))
+        return entries[:limit]
+
     results = []
-    for e in load_index():
+    for e in entries:
         score = 0
         name_t = set(_tokens(e["name"] + " " + e["id"]))
         tag_t = set(_tokens(" ".join(e.get("tags", []))))
@@ -117,10 +129,6 @@ def search(query: str, tags: list[str] | None = None, limit: int = 5) -> list[di
         score += 3 * len(q_tokens & name_t)
         score += 2 * len(q_tokens & tag_t)
         score += 1 * len(q_tokens & desc_t)
-        if tags:
-            wanted = {t.lower() for t in tags}
-            if not wanted & {t.lower() for t in e.get("tags", [])}:
-                continue
         if score > 0:
             results.append((score, e))
     results.sort(key=lambda r: (-r[0], r[1]["id"]))

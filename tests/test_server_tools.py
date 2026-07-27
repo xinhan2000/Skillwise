@@ -49,3 +49,9 @@ def test_use_skill_now_streams_content(sw_home, make_skill, monkeypatch):
     monkeypatch.setenv("SKILLWISE_TOKEN", token)
     out = server.use_skill_now("invoice-generator")
     assert "skill_instructions" in out and "Invoice" in out["skill_instructions"]
+
+
+def test_browse_skills_lists_catalog(sw_home, make_skill):
+    _seed(make_skill)
+    out = server.browse_skills()
+    assert out["results"] and out["results"][0]["id"] == "invoice-generator"
