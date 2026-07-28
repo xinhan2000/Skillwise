@@ -12,10 +12,11 @@ Run:  skillwise serve            (stdio — for `claude mcp add`)
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-from . import auth, catalog, config, events
+from . import auth, catalog, config, drafts, events
 from .auth import AuthError
 
 mcp = FastMCP("skillwise")
@@ -156,6 +157,147 @@ def report_gap(description: str) -> dict:
     it tells the marketplace what to build next."""
     events.log("gap_report", description=description[:500])
     return {"status": "recorded", "thanks": "Gap logged — this drives what gets built next."}
+
+
+# ---------------- creator pipeline (draft lifecycle, owner-bound) ----------------
+
+_NEXT_STEP = {
+    "created": ("Distill the source into an IR: task, when_to_use, procedure, "
+                "origin-tagged rules (article/interview/compiler-default), and "
+                "ranked gaps. Have the creator spot-check ~5 extracted claims "
+                "first, then save_draft(ir=...)."),
+    "distilled": ("Run the mandatory interview: at most 5 questions generated "
+                  "from the top-ranked gaps; probe contradictions with the "
+                  "source; then save_draft(interview={'questions': [...]})."),
+    "interviewed": ("Draft the SKILL.md with origin tags visible; get the "
+                    "creator's explicit endorsement; save_draft(skill_md=...)."),
+    "drafted": ("Ratify a segmented rubric with the creator, run the self-eval "
+                "(article_rules / interview_rules / holistic / "
+                "fabrication_check) and save_draft(eval_report=...)."),
+    "evaluated": "Ask the creator for final approval, then publish_draft(draft_id).",
+    "published": "Done — the skill is live in the catalog.",
+}
+
+
+def _fetch_source(url: str) -> str:
+    import urllib.request
+    if not url.startswith(("http://", "https://")):
+        raise drafts.DraftError("source_url must be http(s).")
+    req = urllib.request.Request(url, headers={"User-Agent": "skillwise-create/0.1"})
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        raw = resp.read(500_000)
+    return raw.decode("utf-8", errors="replace")
+
+
+@mcp.tool()
+def start_skill_draft(source_url: str | None = None,
+                      source_text: str | None = None) -> dict:
+    """Begin creating a marketplace skill from an article or written methodology
+    (requires registration — drafts are owned by the creator's account). Provide
+    a source_url to fetch, or paste source_text directly. Returns a draft_id,
+    the snapshotted source, and instructions for the distillation stage. Use
+    when the user wants to create, build, or publish a skill from their content
+    — including right after report_gap when the user offers to fill the gap."""
+    try:
+        user_id = _current_user()
+    except AuthError as exc:
+        return {"error": "registration_required", "how_to_fix": str(exc)}
+    try:
+        text = source_text
+        if text is None and source_url:
+            text = _fetch_source(source_url)
+        if text is None:
+            return {"error": "Provide source_url or source_text."}
+        meta = drafts.create(user_id, text, source_url=source_url)
+    except drafts.DraftError as exc:
+        return {"error": str(exc)}
+    events.log("draft_started", user_id=user_id, draft_id=meta["id"],
+               source_url=source_url, chars=meta["source"]["chars"])
+    shown = text[:15000]
+    return {
+        "draft_id": meta["id"], "state": meta["state"],
+        "source_sha256": meta["source"]["sha256"],
+        "source_chars": meta["source"]["chars"],
+        "source_text": shown + ("" if len(text) <= 15000 else "\n...[truncated for "
+                                "display; full snapshot stored server-side]"),
+        "next": _NEXT_STEP["created"],
+        "note": ("First apply the procedurality gate: if this content contains no "
+                 "teachable, repeatable method, tell the creator it isn't "
+                 "compile-worthy instead of proceeding."),
+    }
+
+
+@mcp.tool()
+def save_draft(draft_id: str, ir: dict | None = None, interview: dict | None = None,
+               skill_md: str | None = None, eval_report: dict | None = None) -> dict:
+    """Save one or more stages of a skill draft (owner only). Stages must be
+    completed in order: ir (origin-tagged rules + gaps) → interview (mandatory,
+    creator-answered) → skill_md → eval_report (segmented: article_rules,
+    interview_rules, holistic, fabrication_check). The server rejects
+    out-of-order or malformed stages."""
+    try:
+        user_id = _current_user()
+    except AuthError as exc:
+        return {"error": "registration_required", "how_to_fix": str(exc)}
+    try:
+        result = drafts.save(draft_id, user_id, ir=ir, interview=interview,
+                             skill_md=skill_md, eval_report=eval_report)
+    except drafts.DraftError as exc:
+        return {"error": str(exc)}
+    events.log("draft_saved", user_id=user_id, draft_id=draft_id,
+               saved=result["saved"], state=result["state"])
+    return {**result, "next": _NEXT_STEP[result["state"]]}
+
+
+@mcp.tool()
+def publish_draft(draft_id: str) -> dict:
+    """Publish a completed skill draft to the marketplace (owner only). Requires
+    the full lifecycle: distilled, interviewed, drafted, and a PASSING segmented
+    eval including the fabrication check. The skill then goes through the same
+    security scan and immutable-version pipeline as every other skill. Only call
+    after the creator has explicitly approved publishing."""
+    try:
+        user_id = _current_user()
+    except AuthError as exc:
+        return {"error": "registration_required", "how_to_fix": str(exc)}
+    import shutil
+    import tempfile
+    from .ingest import IngestError, publish as ingest_publish
+    try:
+        meta, skill_md, extra = drafts.prepare_publish(draft_id, user_id)
+    except drafts.DraftError as exc:
+        return {"error": str(exc)}
+    tmp = Path(tempfile.mkdtemp(prefix="skillwise-draft-"))
+    try:
+        (tmp / "SKILL.md").write_text(skill_md, encoding="utf-8")
+        try:
+            result = ingest_publish(tmp, author_name=user_id, extra=extra)
+        except IngestError as exc:
+            events.log("draft_publish_rejected", user_id=user_id,
+                       draft_id=draft_id, reason=str(exc)[:300])
+            return {"error": f"Rejected by the ingest pipeline: {exc}"}
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    drafts.mark_published(draft_id, result.skill_id, result.version)
+    events.log("draft_published", user_id=user_id, draft_id=draft_id,
+               skill_id=result.skill_id, version=result.version)
+    return {"skill_id": result.skill_id, "version": result.version,
+            "sha256": result.sha256, "scan": result.scan["status"],
+            "message": (f"Published {result.skill_id} v{result.version} to the "
+                        "marketplace with provenance and eval blocks attached. "
+                        "It is now discoverable via search and browse.")}
+
+
+@mcp.tool()
+def list_drafts() -> dict:
+    """List this creator's skill drafts and their lifecycle states (owner only)."""
+    try:
+        user_id = _current_user()
+    except AuthError as exc:
+        return {"error": "registration_required", "how_to_fix": str(exc)}
+    items = drafts.list_for(user_id)
+    return {"drafts": items,
+            "next_steps": {d["id"]: _NEXT_STEP[d["state"]] for d in items}}
 
 
 def run(http: bool = False, port: int = 8321) -> None:

@@ -12,9 +12,16 @@ security-scanned, hash-pinned, and served through server-side entitlement gating
 
 ```
 src/skillwise/
-  server.py    MCP server — 7 tools. Anonymous: search_skills, browse_skills,
+  server.py    MCP server — 11 tools. Anonymous: search_skills, browse_skills,
                get_skill_details, report_gap. Token-gated: install_skill,
-               use_skill_now, list_entitlements.
+               use_skill_now, list_entitlements, and the creator pipeline:
+               start_skill_draft, save_draft, publish_draft, list_drafts.
+  drafts.py    Creator draft store: owner-bound lifecycle created→distilled→
+               interviewed→drafted→evaluated→published; origin-tagged IR rules
+               (article/interview/compiler-default); segmented eval reports
+               with fabrication check required to publish (Protocol v3 — see
+               docs/experiments/). Publishing goes through ingest.publish()
+               with whitelisted provenance/eval blocks.
   client.py    Dual-backend client layer: LocalBackend (in-process) /
                HttpBackend (REST). CLI and the REST API both go through it.
   user_cli.py  End-user commands: search/list/add/pause/resume/remove/login.

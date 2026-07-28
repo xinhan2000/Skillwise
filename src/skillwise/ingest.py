@@ -75,7 +75,8 @@ def _slug(name: str) -> str:
 
 def publish(package_dir: Path, *, author_name: str = "local", version: str | None = None,
             tags: list[str] | None = None, price_usd: float = 0.0,
-            license_name: str = "Skillwise-Open-v0") -> IngestResult:
+            license_name: str = "Skillwise-Open-v0",
+            extra: dict | None = None) -> IngestResult:
     """Run the full pipeline. Raises IngestError on validation/scan hard-fail."""
     package_dir = Path(package_dir)
     if not package_dir.is_dir():
@@ -138,6 +139,11 @@ def publish(package_dir: Path, *, author_name: str = "local", version: str | Non
         "updated_at": now,
         "stats": existing.get("stats", {}) if existing else {"installs": 0, "loads": 0},
     }
+    if extra:
+        # Only whitelisted blocks may ride along (provenance/eval from the
+        # creator draft pipeline); everything else stays ingest-controlled.
+        entry.update({k: v for k, v in extra.items() if k in ("provenance", "eval")})
+
     catalog.upsert_entry(entry)
     catalog.append_publish_log(skill_id, version, sha256)
 
