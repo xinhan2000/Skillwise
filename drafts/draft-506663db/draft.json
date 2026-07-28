@@ -1,0 +1,18 @@
+{
+  "id": "draft-506663db",
+  "owner": "xin",
+  "state": "published",
+  "source": {
+    "url": "https://keepachangelog.com/en/1.1.0/",
+    "sha256": "1fa308fcf1509b4729134faab498e126315138aa3c35939ad847c8390e4a058e",
+    "chars": 26130,
+    "fetched_at": "2026-07-28T16:32:10Z"
+  },
+  "created_at": "2026-07-28T16:32:10Z",
+  "updated_at": "2026-07-28T17:11:39Z",
+  "published": {
+    "skill_id": "keep-a-changelog",
+    "version": "1.0.0",
+    "at": "2026-07-28T17:11:39Z"
+  }
+}

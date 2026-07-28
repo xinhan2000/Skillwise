@@ -1,0 +1,203 @@
+{
+  "task": "Write and maintain a project CHANGELOG.md that follows the Keep a Changelog 1.1.0 convention \u2014 adding entries for merged changes, cutting a release section, or repairing an existing changelog.",
+  "when_to_use": [
+    "A change has landed and needs a changelog entry",
+    "Cutting/tagging a release and promoting Unreleased into a versioned section",
+    "Starting a CHANGELOG.md for a project that has none",
+    "Reviewing or repairing an existing changelog for format and completeness",
+    "Someone asks to turn a git log, diff, or PR list into release notes"
+  ],
+  "source_attribution": "Method from Keep a Changelog 1.1.0 by Olivier Lacan, MIT licensed. Compiled into a skill by the creator; interview-origin rules are the creator's additions.",
+  "procedure": [
+    {
+      "step": 1,
+      "text": "Determine the mode: new changelog, add entry, cut release, or repair existing.",
+      "origin": "compiler-default"
+    },
+    {
+      "step": 2,
+      "text": "If the changelog does not exist, create CHANGELOG.md with the standard preamble ('All notable changes to this project will be documented in this file.') plus links to Keep a Changelog and the project's versioning scheme, then an ## [Unreleased] section.",
+      "origin": "article"
+    },
+    {
+      "step": 3,
+      "text": "For each change, decide whether it is notable to a user of the project. Trivial internal churn is excluded; anything a consumer could observe is included.",
+      "origin": "article"
+    },
+    {
+      "step": 4,
+      "text": "Classify each notable change into exactly one of the six categories: Added, Changed, Deprecated, Removed, Fixed, Security.",
+      "origin": "article"
+    },
+    {
+      "step": 5,
+      "text": "Write the entry as a human-readable sentence describing user-visible impact, not the code change.",
+      "origin": "article"
+    },
+    {
+      "step": 6,
+      "text": "Place entries under ## [Unreleased] until release; at release, rename that section to ## [X.Y.Z] - YYYY-MM-DD and open a fresh empty ## [Unreleased].",
+      "origin": "article"
+    },
+    {
+      "step": 7,
+      "text": "Maintain link-reference definitions at the bottom: each version links to its tag-comparison URL, Unreleased compares the latest tag to HEAD.",
+      "origin": "article"
+    },
+    {
+      "step": 8,
+      "text": "Omit any category heading that has no entries.",
+      "origin": "article"
+    }
+  ],
+  "rules": [
+    {
+      "text": "Changelogs are for humans, not machines. Every entry describes what changed for a person using the software.",
+      "origin": "article"
+    },
+    {
+      "text": "There must be an entry for every single version.",
+      "origin": "article"
+    },
+    {
+      "text": "The same types of changes are grouped together under a category heading.",
+      "origin": "article"
+    },
+    {
+      "text": "Versions and sections must be linkable \u2014 use [x.y.z] bracket headings with link-reference definitions.",
+      "origin": "article"
+    },
+    {
+      "text": "The latest version comes first; ordering is reverse chronological.",
+      "origin": "article"
+    },
+    {
+      "text": "Every released version displays its release date.",
+      "origin": "article"
+    },
+    {
+      "text": "State whether the project adheres to Semantic Versioning (or which scheme it uses) in the preamble.",
+      "origin": "article"
+    },
+    {
+      "text": "Use exactly six categories and no others: Added (new features), Changed (changes to existing functionality), Deprecated (soon-to-be-removed features), Removed (now-removed features), Fixed (bug fixes), Security (vulnerabilities).",
+      "origin": "article"
+    },
+    {
+      "text": "Keep an Unreleased section at the top so users can see what is coming and maintainers can promote it at release time.",
+      "origin": "article"
+    },
+    {
+      "text": "Dates use ISO 8601 (YYYY-MM-DD) \u2014 largest to smallest unit, no regional ambiguity.",
+      "origin": "article"
+    },
+    {
+      "text": "The file is named CHANGELOG.md, uppercase, at the project root.",
+      "origin": "article"
+    },
+    {
+      "text": "Yanked releases are marked: ## [0.0.5] - 2014-12-13 [YANKED].",
+      "origin": "article"
+    },
+    {
+      "text": "Deprecations, removals, and breaking changes must always be documented \u2014 it must be painfully clear when something will break, and a deprecation must ship in a release before the removal.",
+      "origin": "article"
+    },
+    {
+      "text": "Rewriting a changelog to add missed releases or correct overlooked breaking changes is correct and encouraged, not a violation.",
+      "origin": "article"
+    },
+    {
+      "text": "Omit empty category sections \u2014 they occupy space and create noise; readers assume missing sections had no notable changes.",
+      "origin": "article"
+    },
+    {
+      "text": "Each entry ends with a period.",
+      "origin": "article"
+    }
+  ],
+  "taboos": [
+    {
+      "text": "Never dump commit log diffs as a changelog. Commit logs are full of merge commits, obscure titles, and documentation churn; they record source evolution, not user-facing change.",
+      "origin": "article"
+    },
+    {
+      "text": "Never document only some of the notable changes \u2014 a partial changelog can be as dangerous as no changelog.",
+      "origin": "article"
+    },
+    {
+      "text": "Never use ambiguous regional date formats (MM/DD/YYYY, DD-MM-YYYY).",
+      "origin": "article"
+    },
+    {
+      "text": "Never invent categories outside the six.",
+      "origin": "article"
+    },
+    {
+      "text": "Never remove or break something without a prior Deprecated entry.",
+      "origin": "article"
+    }
+  ],
+  "output_format": {
+    "file": "CHANGELOG.md",
+    "origin": "article",
+    "shape": "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),\nand this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n\n## [Unreleased]\n\n## [1.1.0] - 2019-02-15\n\n### Added\n\n- Danish translation.\n\n### Fixed\n\n- Italian translation.\n\n[unreleased]: https://github.com/owner/repo/compare/v1.1.0...HEAD\n[1.1.0]: https://github.com/owner/repo/compare/v1.0.0...v1.1.0"
+  },
+  "examples": [
+    {
+      "good": "- Danish translation.",
+      "bad": "- Merge pull request #412 from feature/danish-i18n",
+      "why": "The bad example is a commit title: it names the branch and PR number, not what a user gains.",
+      "origin": "article"
+    }
+  ],
+  "edge_cases": [
+    {
+      "case": "Yanked release",
+      "handling": "## [0.0.5] - 2014-12-13 [YANKED] \u2014 bracketed so it is both visible to humans and parseable.",
+      "origin": "article"
+    },
+    {
+      "case": "Automatic parsing of changelogs",
+      "handling": "Hard in general because formats and filenames vary widely; this format improves but does not guarantee parseability.",
+      "origin": "article"
+    },
+    {
+      "case": "GitHub Releases instead of a file",
+      "handling": "GitHub Releases produce a non-portable changelog visible only inside GitHub, are less discoverable than an uppercase root file, and lack commit-comparison links between releases.",
+      "origin": "article"
+    }
+  ],
+  "gaps": [
+    {
+      "rank": 1,
+      "gap": "Notability threshold: the article says trivial changes need not appear but never defines the line between notable and trivial. This decides every single entry.",
+      "impact": "trigger conditions"
+    },
+    {
+      "rank": 2,
+      "gap": "Missing-data behavior: given a raw git log/diff, the writer often cannot tell user-facing impact, and may not know the version number or release date. The article never says what to do when the input is insufficient.",
+      "impact": "missing-data handling"
+    },
+    {
+      "rank": 3,
+      "gap": "Category tiebreaker: no rule for changes that fit two categories (a security fix that is also a bug fix; a breaking change that is a modification; a removal that is also a fix).",
+      "impact": "output format / classification"
+    },
+    {
+      "rank": 4,
+      "gap": "Entry voice and shape: tense, person, length, whether PR/issue links, author credits, or ticket IDs belong in an entry. The source's own changelog uses terse imperative sentences but never states this as a rule.",
+      "impact": "tone/voice"
+    },
+    {
+      "rank": 5,
+      "gap": "Refusal case: is there a situation where the right output is to decline to write entries at all (e.g. asked to auto-generate a changelog from commits wholesale)?",
+      "impact": "don't-do-it verdict"
+    },
+    {
+      "rank": 6,
+      "gap": "Audience calibration: internal/private app vs. public library \u2014 does the standard bend for a project with no external consumers?",
+      "impact": "tone/audience"
+    }
+  ]
+}

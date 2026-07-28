@@ -84,6 +84,15 @@ Findings feeding Phase 1:
 
 ## 2. Phase-1 scope, in priority order
 
+### P0 — Catalogs as first-class tenants (added 2026-07-28 — see strategy-fork.md)
+- One server, many catalogs: public marketplace, private per-org catalogs,
+  dev — identical machinery, different config. Accounts gain an org concept;
+  every catalog read/write becomes catalog-scoped.
+- One ACL/entitlement mechanism covers both "paid skill → buyers only" (2C)
+  and "private skill → org members only" (2B). Build once.
+- This is the architectural keystone that keeps the 2C-vs-2B fork a
+  configuration decision instead of a rewrite.
+
 ### P0 — Remote deployment of the existing server
 - Deploy `skillwise serve --http` (Streamable HTTP, already implemented)
   behind TLS. Suggested host: fly.io or any $5 VPS; SQLite/JSON on a volume
