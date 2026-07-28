@@ -1,9 +1,5 @@
 # Skillwise
 
-[![CI](https://github.com/xinhan2000/Skillwise/actions/workflows/ci.yml/badge.svg)](https://github.com/xinhan2000/Skillwise/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-
 **An agent-native marketplace for AI skills, delivered over MCP.**
 
 Skillwise lets any MCP-capable agent (Claude Code, Claude Desktop, Cursor, …) discover,
@@ -24,10 +20,10 @@ User: "Turn this order list into a proper invoice PDF"
   → Files land in ~/.claude/skills/… — task continues
 ```
 
-Six MCP tools: `search_skills`, `get_skill_details`, `report_gap` (anonymous) and
-`install_skill`, `use_skill_now`, `list_entitlements` (registered users only).
-`use_skill_now` streams a skill straight into context without touching disk —
-the seed of metered delivery.
+Seven MCP tools: `search_skills`, `browse_skills`, `get_skill_details`,
+`report_gap` (anonymous) and `install_skill`, `use_skill_now`,
+`list_entitlements` (registered users only). `use_skill_now` streams a skill
+straight into context without touching disk — the seed of metered delivery.
 
 ## Quickstart
 
@@ -71,18 +67,44 @@ publish but are displayed on the listing and in pre-install summaries. Every
 version is immutable, sha256-hashed, and appended to `catalog/publish_log.jsonl`
 — the provenance record.
 
+## User CLI
+
+The same marketplace, driven from a terminal (or by an agent running shell
+commands). Reads are anonymous; the first `add` prompts once to register and
+stores the token in `~/.skillwise/config.json`.
+
+```bash
+skillwise search [query]     # no query = browse the whole catalog
+skillwise add <skill-id>     # confirm, register once, install (-y to skip prompts)
+skillwise list               # what's installed via Skillwise, active or paused
+skillwise pause <skill-id>   # disable without uninstalling (moves to skills-paused/)
+skillwise resume <skill-id>  # re-enable
+skillwise remove <skill-id>  # uninstall
+skillwise login              # (re)register this machine
+```
+
+The CLI talks through a dual-backend client (`client.py`): in-process against
+the local catalog today, or over the REST API (`/api/*`, served by the site
+app) when `server_url` is set in `~/.skillwise/config.json` — the Phase-1
+hosted mode. Install target defaults to `~/.claude/skills` (override with
+`install_dir` in the config). Non-interactive shells get actionable errors
+(e.g. "re-run with -y") instead of prompts.
+
 ## Repo layout
 
 ```
 src/skillwise/          the package
-  server.py             MCP server (6 tools, stdio + streamable-http)
-  cli.py                skillwise CLI (serve | site | publish | token | seed)
+  server.py             MCP server (7 tools, stdio + streamable-http)
+  cli.py                CLI entry (operator + user subcommands)
+  user_cli.py           user commands: search/list/add/pause/resume/remove/login
+  client.py             dual-backend client: in-process local or REST (HttpBackend)
+  userstate.py          ~/.skillwise config + installed-skill manifest
   ingest.py             validate → lint → hash → publish pipeline
   lint.py               8-point security scan
   catalog.py            index, packages, hashing, search, publish log
   auth.py               dev-token auth (Phase-1: OAuth 2.1) + entitlements
   events.py             append-only telemetry (searches, installs, gaps)
-  site/                 local web UI (FastAPI + Jinja)
+  site/                 local web UI + REST API /api/* (FastAPI + Jinja)
 examples/sample-skills/ 5 skills for the dev catalog
 tests/                  pytest suite
 docs/architecture.md    Phase-0 design document

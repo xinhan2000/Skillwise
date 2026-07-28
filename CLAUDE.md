@@ -15,6 +15,13 @@ src/skillwise/
   server.py    MCP server — 7 tools. Anonymous: search_skills, browse_skills,
                get_skill_details, report_gap. Token-gated: install_skill,
                use_skill_now, list_entitlements.
+  client.py    Dual-backend client layer: LocalBackend (in-process) /
+               HttpBackend (REST). CLI and the REST API both go through it.
+  user_cli.py  End-user commands: search/list/add/pause/resume/remove/login.
+               Prompt-once registration; non-tty prompts fail with hints.
+  userstate.py End-user state: ~/.skillwise config (SKILLWISE_USER_DIR
+               override) + installed-skill manifest; pause = move folder to
+               <install_dir>-paused/.
   auth.py      THE auth chokepoint. auth.validate() is the single function that
                swaps to OAuth 2.1 in Phase 1. Entitlement records live here too.
   catalog.py   Index (catalog/catalog.json), package files, canonical sha256
@@ -24,7 +31,7 @@ src/skillwise/
   lint.py      8-point static security scan; derives the capabilities manifest.
   events.py    Append-only telemetry (data/events.jsonl).
   cli.py       skillwise serve | site | publish | token | seed
-  site/        Local web UI (FastAPI + Jinja), port 8322.
+  site/        Local web UI + REST API (/api/*) used by HttpBackend, port 8322.
 ```
 
 ## Invariants — do not break these
@@ -49,6 +56,8 @@ src/skillwise/
   MCP client configs point at.
 - `catalog/` and `data/` are generated/runtime — gitignored, never committed.
 - CI: `.github/workflows/ci.yml`, Python 3.10 + 3.12, must stay green.
+- CLI prompts must never crash on non-tty stdin — fail with an actionable hint
+  (agents read error text as documentation, e.g. "re-run with -y").
 
 ## Key Phase-0 findings (context for Phase-1 choices)
 
@@ -60,3 +69,6 @@ src/skillwise/
   approval × registration) — friction to design down, not add to.
 - **When the MCP server is missing, agents improvise wrong fallbacks**
   (e.g. inventing `claude plugin install` commands) — connector-absent UX matters.
+- **Identity is split:** the CLI token and MCP token are separate accounts, and
+  MCP installs don't appear in the CLI manifest (`skillwise list`). Unify both
+  under one account/manifest in Phase 1 (OAuth work).

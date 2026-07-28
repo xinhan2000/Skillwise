@@ -47,6 +47,41 @@ was a "review"-shaped task (SQL). Implications:
 
 ---
 
+## 1b. CLI round — results and findings (2026-07-28)
+
+Shipped post-plan, still Phase 0: end-user CLI (`search/list/add/pause/resume/
+remove/login`) with a dual-backend client (in-process local now, REST later)
+plus the REST API (`/api/*`) on the site app. Verified end-to-end driven by a
+human terminal, by Claude Code via shell, and cross-checked against MCP flows
+on Claude Desktop. Suite: 32 tests.
+
+Findings feeding Phase 1:
+
+- **Identity split (now a P0 requirement, not a footnote).** The CLI token and
+  the MCP token are separate accounts; `list_entitlements` (MCP) and
+  `skillwise list` (CLI manifest) show different worlds, and MCP installs are
+  invisible to CLI pause/remove. The OAuth work must land one account across
+  MCP + CLI + web, and both install routes must share one manifest (or the CLI
+  should scan the skills dir and show unmanaged folders).
+- **Agents surface CLI bugs humans don't.** Claude Code's first `add` hit the
+  interactive confirm on a non-tty stdin and crashed (EOFError). Fixed: all
+  prompts fail cleanly with actionable hints ("re-run with -y"). Principle
+  adopted: CLI error text is agent documentation.
+- **Desktop install fallback needs explicit wording.** On surfaces with no
+  file tools, `install_skill` can't land files; tool descriptions should say
+  "no local file access → offer use_skill_now instead" so agents degrade
+  gracefully rather than improvising.
+- **Trigger finding confirmed on a second surface.** The Desktop implicit-
+  trigger probe produced no marketplace call in telemetry — consistent with
+  the ~20% Claude Code result. Decision stands: don't chase spontaneous
+  triggering in Phase 1.
+- **Telemetry gap to verify:** exercising `use_skill_now` on Desktop should
+  write a `load` event; the log shows browse/details from that test window but
+  no load. Re-run and confirm the event fires (possible the agent formatted
+  output without actually calling the tool — check tool-call transcripts).
+
+---
+
 ## 2. Phase-1 scope, in priority order
 
 ### P0 — Remote deployment of the existing server
@@ -62,6 +97,8 @@ was a "review"-shaped task (SQL). Implications:
   requirement, run the browser flow, attach bearer tokens per call.
 - Token → user_id mapping replaces `data/tokens.json`; entitlement records
   keep the same shape. Keep a dev-token mode behind an env flag for tests.
+- **One account across all routes** (MCP, CLI via HttpBackend, web) and one
+  shared install manifest — see finding in §1b.
 
 ### P1 — Tester onboarding
 - One-page connect instructions per client (Claude Code, Claude Desktop,
