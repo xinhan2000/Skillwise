@@ -12,6 +12,9 @@ data/tokens.json
 data/events.jsonl
 data/entitlements.json
 
+# Creator drafts (runtime data)
+drafts/
+
 # Generated catalog (rebuild with `skillwise seed`; commit only if you want a shared catalog)
 catalog/
 
