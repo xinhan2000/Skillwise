@@ -19,6 +19,14 @@ def _fail(msg: str) -> None:
     sys.exit(1)
 
 
+def _prompt(text: str) -> str | None:
+    """input() that survives non-interactive shells: returns None on EOF."""
+    try:
+        return input(text)
+    except EOFError:
+        return None
+
+
 def _print_results(results: list[dict]) -> None:
     if not results:
         print("No skills found.")
@@ -41,7 +49,11 @@ def _ensure_token(cfg: dict, backend) -> str:
     if cfg.get("token"):
         return cfg["token"]
     print("Installing requires a (free) Skillwise account — one-time setup.")
-    name = input("Your name or handle: ").strip()
+    name = _prompt("Your name or handle: ")
+    if name is None:
+        _fail("registration needs an interactive terminal — run `skillwise login` there once, "
+              "then non-interactive installs will work")
+    name = name.strip()
     if not name:
         _fail("registration cancelled (empty name)")
     token = backend.register(name)
@@ -90,8 +102,11 @@ def cmd_add(args) -> None:
     cap_note = ", ".join(k for k, v in caps.items() if v) or "no network/shell/file access"
     print(f"{entry['name']} v{entry['version']} — scan: {scan} — {cap_note}")
     if not args.yes:
-        answer = input("Install? [y/N] ").strip().lower()
-        if answer not in ("y", "yes"):
+        answer = _prompt("Install? [y/N] ")
+        if answer is None:
+            _fail("no interactive terminal to confirm — re-run with -y/--yes "
+                  f"(e.g. `skillwise add {args.skill_id} -y`)")
+        if answer.strip().lower() not in ("y", "yes"):
             print("Cancelled.")
             return
 

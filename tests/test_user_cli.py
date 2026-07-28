@@ -85,3 +85,28 @@ def test_remove_deletes_even_when_paused(sw_home, user_home, make_skill, monkeyp
 def test_pause_unknown_skill_fails(sw_home, user_home):
     with pytest.raises(SystemExit):
         user_cli.cmd_pause(_args(skill_id="never-installed"))
+
+
+def test_add_without_tty_fails_cleanly_with_hint(sw_home, user_home, make_skill, monkeypatch, capsys):
+    _seeded(make_skill)
+
+    def _eof(prompt=""):
+        raise EOFError
+
+    monkeypatch.setattr("builtins.input", _eof)
+    with pytest.raises(SystemExit):
+        user_cli.cmd_add(_args(skill_id="invoice-generator", yes=False))
+    err = capsys.readouterr().err
+    assert "-y" in err  # actionable hint, not a traceback
+
+
+def test_registration_without_tty_fails_cleanly(sw_home, user_home, make_skill, monkeypatch, capsys):
+    _seeded(make_skill)
+
+    def _eof(prompt=""):
+        raise EOFError
+
+    monkeypatch.setattr("builtins.input", _eof)
+    with pytest.raises(SystemExit):
+        user_cli.cmd_add(_args(skill_id="invoice-generator", yes=True))
+    assert "skillwise login" in capsys.readouterr().err
