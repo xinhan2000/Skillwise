@@ -1,0 +1,6 @@
+2026-07-28T02:23:38Z stage=0-start
+2026-07-28T02:25:31Z stage=0-snapshot-saved
+3929aefa78d4f7cbe3fe52cafc6506390e1f9cbec7d62c00c502699b70454376  source-snapshot.md
+2026-07-28T02:26:08Z stage=1-IR-built
+2026-07-28T03:01:51Z stage=3-skill-and-rubric-drafted-awaiting-ratification
+2026-07-28T03:22:18Z stage=6-judging-complete
