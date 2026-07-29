@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Skillwise{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="/static/icon.svg">
   <style>
     :root { --ink:#1a1a2e; --muted:#6b7280; --accent:#4f46e5; --bg:#fafaf9; --card:#ffffff; --ok:#16a34a; --warn:#d97706; --bad:#dc2626; }
     * { box-sizing: border-box; }
@@ -28,7 +29,7 @@
 </head>
 <body>
 <header>
-  <span class="brand"><a href="/">Skillwise</a></span>
+  <span class="brand" style="display:flex;align-items:center;gap:8px"><img src="/static/icon.svg" width="22" height="22" alt=""><a href="/">Skillwise</a></span>
   <span class="nav"><a href="/">Catalog</a> <a href="/upload">Upload a skill</a></span>
 </header>
 <main>{% block content %}{% endblock %}</main>

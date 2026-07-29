@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Skillwise mark: the S, sparked. Blue tile = the marketplace;
+       violet spark = the creator's added wisdom. -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a78d6"/>
+      <stop offset="1" stop-color="#1c5cab"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#g)"/>
+  <text x="30" y="46" font-family="system-ui,-apple-system,'Segoe UI',sans-serif"
+        font-size="40" font-weight="800" fill="#ffffff" text-anchor="middle">S</text>
+  <path d="M49 12l1.8 4.2L55 18l-4.2 1.8L49 24l-1.8-4.2L43 18l4.2-1.8z" fill="#c9bfff"/>
+</svg>

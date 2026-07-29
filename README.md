@@ -1,3 +1,5 @@
+<img src="src/skillwise/site/static/icon.svg" width="72" alt="Skillwise">
+
 # Skillwise
 
 **An agent-native marketplace for AI skills, delivered over MCP.**
